@@ -52,6 +52,11 @@ public abstract class AlbumRipper extends AbstractRipper {
      */
     public boolean addURLToDownload(URL url, File saveAs, String referrer, Map<String,String> cookies, Boolean getFileExtFromMIME) {
             // Only download one file if this is a test.
+            
+           
+            
+            
+            
         if (super.isThisATest() &&
                 (itemsPending.size() > 0 || itemsCompleted.size() > 0 || itemsErrored.size() > 0)) {
             stop();
@@ -67,14 +72,17 @@ public abstract class AlbumRipper extends AbstractRipper {
         }
         if (Utils.getConfigBoolean("urls_only.save", false)) {
             // Output URL to file
-            String urlFile = this.workingDir + File.separator + "urls.txt";
+          String urlFile = this.workingDir + File.separator + "urls.txt";
+         
+          
             try (FileWriter fw = new FileWriter(urlFile, true)) {
-                fw.write(url.toExternalForm());
+                fw.write(url.toExternalForm()+","+saveAs.getName());//come here jani
                 fw.write(System.lineSeparator());
                 itemsCompleted.put(url, new File(urlFile));
             } catch (IOException e) {
                 LOGGER.error("Error while writing to " + urlFile, e);
             }
+        
         }
         else {
             itemsPending.put(url, saveAs);
