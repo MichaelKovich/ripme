@@ -25,19 +25,22 @@ public class RedditRipper extends AlbumRipper {
         super(url);
     }
 
-    private static final String HOST   = "reddit";
+    private static final String HOST = "reddit";
     private static final String DOMAIN = "reddit.com";
 
-    private static final String REDDIT_USER_AGENT = "RipMe:github.com/RipMeApp/ripme:" + UpdateUtils.getThisJarVersion() + " (by /u/metaprime and /u/ineedmorealts)";
+    private static final String REDDIT_USER_AGENT = "RipMe:github.com/RipMeApp/ripme:" + UpdateUtils.getThisJarVersion()
+            + " (by /u/metaprime and /u/ineedmorealts)";
 
     private static final int SLEEP_TIME = 2000;
 
-    //private static final String USER_AGENT = "ripme by /u/4_pr0n github.com/4pr0n/ripme";
+    // private static final String USER_AGENT = "ripme by /u/4_pr0n
+    // github.com/4pr0n/ripme";
 
     private long lastRequestTime = 0;
 
     private Boolean shouldAddURL() {
-        return (alreadyDownloadedUrls >= Utils.getConfigInteger("history.end_rip_after_already_seen", 1000000000) && !isThisATest());
+        return (alreadyDownloadedUrls >= Utils.getConfigInteger("history.end_rip_after_already_seen", 1000000000)
+                && !isThisATest());
     }
 
     @Override
@@ -67,7 +70,8 @@ public class RedditRipper extends AlbumRipper {
         URL jsonURL = getJsonURL(this.url);
         while (true) {
             if (shouldAddURL()) {
-                sendUpdate(RipStatusMessage.STATUS.DOWNLOAD_COMPLETE_HISTORY, "Already seen the last " + alreadyDownloadedUrls + " images ending rip");
+                sendUpdate(RipStatusMessage.STATUS.DOWNLOAD_COMPLETE_HISTORY,
+                        "Already seen the last " + alreadyDownloadedUrls + " images ending rip");
                 break;
             }
             jsonURL = getAndParseAndReturnNext(jsonURL);
@@ -77,8 +81,6 @@ public class RedditRipper extends AlbumRipper {
         }
         waitForThreads();
     }
-
-
 
     private URL getAndParseAndReturnNext(URL url) throws IOException {
         JSONArray jsonArray = getJsonArrayFromURL(url), children;
@@ -101,8 +103,7 @@ public class RedditRipper extends AlbumRipper {
                 String nextURLString = Utils.stripURLParameter(url.toExternalForm(), "after");
                 if (nextURLString.contains("?")) {
                     nextURLString = nextURLString.concat("&after=" + data.getString("after"));
-                }
-                else {
+                } else {
                     nextURLString = nextURLString.concat("?after=" + data.getString("after"));
                 }
                 nextURL = new URL(nextURLString);
@@ -119,7 +120,9 @@ public class RedditRipper extends AlbumRipper {
     }
 
     /**
-     * Gets a representation of the specified reddit page as a JSONArray using the reddit API
+     * Gets a representation of the specified reddit page as a JSONArray using the
+     * reddit API
+     * 
      * @param url The url of the desired page
      * @return A JSONArray object representation of the desired page
      * @throws IOException If no response is received from the url
@@ -137,11 +140,7 @@ public class RedditRipper extends AlbumRipper {
         }
         lastRequestTime = System.currentTimeMillis();
 
-        String jsonString = Http.url(url)
-                                .ignoreContentType()
-                                .userAgent(REDDIT_USER_AGENT)
-                                .response()
-                                .body();
+        String jsonString = Http.url(url).ignoreContentType().userAgent(REDDIT_USER_AGENT).response().body();
 
         Object jsonObj = new JSONTokener(jsonString).nextValue();
         JSONArray jsonArray = new JSONArray();
@@ -156,17 +155,19 @@ public class RedditRipper extends AlbumRipper {
     }
 
     /**
-     * Turns child JSONObject's into usable URLs and hands them off for further processing
-     * Performs filtering checks based on the reddit.
-     * Only called from getAndParseAndReturnNext() while parsing the JSONArray returned from reddit's API
+     * Turns child JSONObject's into usable URLs and hands them off for further
+     * processing Performs filtering checks based on the reddit. Only called from
+     * getAndParseAndReturnNext() while parsing the JSONArray returned from reddit's
+     * API
+     * 
      * @param child The child to process
      */
     private void parseJsonChild(JSONObject child) {
         String kind = child.getString("kind");
         JSONObject data = child.getJSONObject("data");
 
-        //Upvote filtering
-        if (Utils.getConfigBoolean("reddit.rip_by_upvote", false)){
+        // Upvote filtering
+        if (Utils.getConfigBoolean("reddit.rip_by_upvote", false)) {
             int score = data.getInt("score");
             int maxScore = Utils.getConfigInteger("reddit.max_upvotes", Integer.MAX_VALUE);
             int minScore = Utils.getConfigInteger("reddit.min_upvotes", Integer.MIN_VALUE);
@@ -175,15 +176,14 @@ public class RedditRipper extends AlbumRipper {
 
                 String message = "Skipping post with score outside specified range of " + minScore + " to " + maxScore;
                 sendUpdate(RipStatusMessage.STATUS.DOWNLOAD_WARN, message);
-                return; //Outside specified range, do not download
+                return; // Outside specified range, do not download
             }
         }
 
         if (kind.equals("t1")) {
             // Comment
             handleBody(data.getString("body"), data.getString("id"), "");
-        }
-        else if (kind.equals("t3")) {
+        } else if (kind.equals("t3")) {
             // post
             if (data.getBoolean("is_self")) {
                 // TODO Parse self text
@@ -193,9 +193,7 @@ public class RedditRipper extends AlbumRipper {
                 handleURL(data.getString("url"), data.getString("id"), data.getString("title"));
             }
             if (data.has("replies") && data.get("replies") instanceof JSONObject) {
-                JSONArray replies = data.getJSONObject("replies")
-                                        .getJSONObject("data")
-                                        .getJSONArray("children");
+                JSONArray replies = data.getJSONObject("replies").getJSONObject("data").getJSONArray("children");
                 for (int i = 0; i < replies.length(); i++) {
                     parseJsonChild(replies.getJSONObject(i));
                 }
@@ -221,7 +219,8 @@ public class RedditRipper extends AlbumRipper {
             doc = Http.url(vidURL + "/DASHPlaylist.mpd").ignoreContentType().get();
             int largestHeight = 0;
             String baseURL = null;
-            // Loops over all the videos and finds the one with the largest height and sets baseURL to the base url of that video
+            // Loops over all the videos and finds the one with the largest height and sets
+            // baseURL to the base url of that video
             for (org.jsoup.nodes.Element e : doc.select("MPD > Period > AdaptationSet > Representation")) {
                 String height = e.attr("height");
                 if (height.equals("")) {
@@ -229,7 +228,8 @@ public class RedditRipper extends AlbumRipper {
                 }
                 if (largestHeight < Integer.parseInt(height)) {
                     largestHeight = Integer.parseInt(height);
-                    baseURL = doc.select("MPD > Period > AdaptationSet > Representation[height=" + height + "]").select("BaseURL").text();
+                    baseURL = doc.select("MPD > Period > AdaptationSet > Representation[height=" + height + "]")
+                            .select("BaseURL").text();
                 }
             }
             return new URL(vidURL + "/" + baseURL);
@@ -241,6 +241,7 @@ public class RedditRipper extends AlbumRipper {
     }
 
     private void handleURL(String theUrl, String id, String title) {
+        LOGGER.error("In Reddit");
         URL originalURL;
         try {
             originalURL = new URL(theUrl);
@@ -251,7 +252,6 @@ public class RedditRipper extends AlbumRipper {
         if (Utils.getConfigBoolean("reddit.use_sub_dirs", true)) {
             if (Utils.getConfigBoolean("album_titles.save", true)) {
                 subdirectory = title;
-                title = "-" + title + "-";
             } else {
                 title = "";
             }
@@ -276,13 +276,12 @@ public class RedditRipper extends AlbumRipper {
                     LOGGER.info("url: " + urlToDownload + " file: " + savePath);
                     addURLToDownload(urlToDownload, new File(savePath));
                 }
-            }
-            else {
-                addURLToDownload(urls.get(0), id + title, "", theUrl, null);
+            } else {
+                addURLToDownload(urls.get(0), title, "", theUrl, null);
             }
         } else if (urls.size() > 1) {
             for (int i = 0; i < urls.size(); i++) {
-                String prefix = id + "";
+                String prefix = "";
                 if (Utils.getConfigBoolean("download.save_order", true)) {
                     prefix += String.format("%03d-", i + 1);
                 }

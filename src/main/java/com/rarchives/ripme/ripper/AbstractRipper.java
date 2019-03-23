@@ -24,15 +24,12 @@ import com.rarchives.ripme.utils.Utils;
 import java.io.File;
 import java.util.Scanner;
 
-public abstract class AbstractRipper
-                extends Observable
-                implements RipperInterface, Runnable {
+public abstract class AbstractRipper extends Observable implements RipperInterface, Runnable {
 
     protected static final Logger LOGGER = Logger.getLogger(AbstractRipper.class);
     private final String URLHistoryFile = Utils.getURLHistoryFile();
 
-    public static final String USER_AGENT =
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36";
+    public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36";
 
     protected URL url;
     protected File workingDir;
@@ -42,9 +39,15 @@ public abstract class AbstractRipper
     private boolean completed = true;
 
     public abstract void rip() throws IOException;
+
     public abstract String getHost();
+
     public abstract String getGID(URL url) throws MalformedURLException;
-    public boolean hasASAPRipping() { return false; }
+
+    public boolean hasASAPRipping() {
+        return false;
+    }
+
     // Everytime addUrlToDownload skips a already downloaded url this increases by 1
     public int alreadyDownloadedUrls = 0;
     private boolean shouldStop = false;
@@ -53,18 +56,20 @@ public abstract class AbstractRipper
     public void stop() {
         shouldStop = true;
     }
+
     public boolean isStopped() {
         return shouldStop;
     }
+
     protected void stopCheck() throws IOException {
         if (shouldStop) {
             throw new IOException("Ripping interrupted");
         }
     }
 
-
     /**
      * Adds a URL to the url history file
+     * 
      * @param downloadedURL URL to check if downloaded
      */
     protected void writeDownloadedURL(String downloadedURL) throws IOException {
@@ -115,21 +120,21 @@ public abstract class AbstractRipper
         }
     }
 
-
     /**
      * Normalize a URL
+     * 
      * @param url URL to check if downloaded
      */
     public String normalizeUrl(String url) {
         return url;
     }
-    
+
     /**
      * Checks to see if Ripme has already downloaded a URL
+     * 
      * @param url URL to check if downloaded
-     * @return 
-     *      Returns true if previously downloaded.
-     *      Returns false if not yet downloaded.
+     * @return Returns true if previously downloaded. Returns false if not yet
+     *         downloaded.
      */
     protected boolean hasDownloadedURL(String url) {
         File file = new File(URLHistoryFile);
@@ -149,15 +154,12 @@ public abstract class AbstractRipper
         return false;
     }
 
-
     /**
      * Ensures inheriting ripper can rip this URL, raises exception if not.
      * Otherwise initializes working directory and thread pool.
      *
-     * @param url
-     *      URL to rip.
-     * @throws IOException
-     *      If anything goes wrong.
+     * @param url URL to rip.
+     * @throws IOException If anything goes wrong.
      */
     public AbstractRipper(URL url) throws IOException {
         if (!canRip(url)) {
@@ -167,13 +169,10 @@ public abstract class AbstractRipper
     }
 
     /**
-     * Sets ripper's:
-     *      Working directory
-     *      Logger (for debugging)
-     *      FileAppender
-     *      Threadpool
-     * @throws IOException 
-     *      Always be prepared.
+     * Sets ripper's: Working directory Logger (for debugging) FileAppender
+     * Threadpool
+     * 
+     * @throws IOException Always be prepared.
      */
     public void setup() throws IOException {
         setWorkingDir(this.url);
@@ -193,59 +192,52 @@ public abstract class AbstractRipper
 
     /**
      * Queues image to be downloaded and saved.
-     * @param url
-     *      URL of the file
-     * @param saveAs
-     *      Path of the local file to save the content to.
+     * 
+     * @param url    URL of the file
+     * @param saveAs Path of the local file to save the content to.
      * @return True on success, false on failure.
      */
     public abstract boolean addURLToDownload(URL url, File saveAs);
 
     /**
      * Queues image to be downloaded and saved.
-     * @param url
-     *      URL of the file
-     * @param saveAs
-     *      Path of the local file to save the content to.
-     * @param referrer
-     *      The HTTP referrer to use while downloading this file.
-     * @param cookies
-     *      The cookies to send to the server while downloading this file.
-     * @return
-     *      True if downloaded successfully
-     *      False if failed to download
+     * 
+     * @param url      URL of the file
+     * @param saveAs   Path of the local file to save the content to.
+     * @param referrer The HTTP referrer to use while downloading this file.
+     * @param cookies  The cookies to send to the server while downloading this
+     *                 file.
+     * @return True if downloaded successfully False if failed to download
      */
     protected abstract boolean addURLToDownload(URL url, File saveAs, String referrer, Map<String, String> cookies,
-                                                Boolean getFileExtFromMIME);
+            Boolean getFileExtFromMIME);
 
     /**
      * Queues image to be downloaded and saved.
-     * @param url
-     *      URL of the file
-     * @param prefix
-     *      Prefix for the downloaded file
-     * @param subdirectory
-     *      Path to get to desired directory from working directory
-     * @param referrer
-     *      The HTTP referrer to use while downloading this file.
-     * @param cookies
-     *      The cookies to send to the server while downloading this file.
-     * @param fileName
-     *      The name that file will be written to
-     * @return 
-     *      True if downloaded successfully
-     *      False if failed to download
+     * 
+     * @param url          URL of the file
+     * @param prefix       Prefix for the downloaded file
+     * @param subdirectory Path to get to desired directory from working directory
+     * @param referrer     The HTTP referrer to use while downloading this file.
+     * @param cookies      The cookies to send to the server while downloading this
+     *                     file.
+     * @param fileName     The name that file will be written to
+     * @return True if downloaded successfully False if failed to download
      */
-    protected boolean addURLToDownload(URL url, String prefix, String subdirectory, String referrer, Map<String, String> cookies, String fileName, String extension, Boolean getFileExtFromMIME) {
-        // A common bug is rippers adding urls that are just "http:". This rejects said urls
+    protected boolean addURLToDownload(URL url, String prefix, String subdirectory, String referrer,
+            Map<String, String> cookies, String fileName, String extension, Boolean getFileExtFromMIME) {
+        // A common bug is rippers adding urls that are just "http:". This rejects said
+        // urls
         if (url.toExternalForm().equals("http:") || url.toExternalForm().equals("https:")) {
             LOGGER.info(url.toExternalForm() + " is a invalid url amd will be changed");
             return false;
 
         }
-        // Make sure the url doesn't contain any spaces as that can cause a 400 error when requesting the file
+        // Make sure the url doesn't contain any spaces as that can cause a 400 error
+        // when requesting the file
         if (url.toExternalForm().contains(" ")) {
-            // If for some reason the url with all spaces encoded as %20 is malformed print an error
+            // If for some reason the url with all spaces encoded as %20 is malformed print
+            // an error
             try {
                 url = new URL(url.toExternalForm().replaceAll(" ", "%20"));
             } catch (MalformedURLException e) {
@@ -267,8 +259,9 @@ public abstract class AbstractRipper
             LOGGER.debug("Ripper has been stopped");
             return false;
         }
-        LOGGER.debug("url: " + url + ", prefix: " + prefix + ", subdirectory" + subdirectory + ", referrer: " + referrer + ", cookies: " + cookies + ", fileName: " + fileName);
-        String saveAs = getFileName(url, fileName, extension);
+        LOGGER.debug("url: " + url + ", prefix: " + prefix + ", subdirectory" + subdirectory + ", referrer: " + referrer
+                + ", cookies: " + cookies + ", fileName: " + fileName);
+        String saveAs = ".jpg";
         File saveFileAs;
         try {
             if (!subdirectory.equals("")) {
@@ -280,12 +273,12 @@ public abstract class AbstractRipper
             if (App.stringToAppendToFoldername != null) {
                 topFolderName = topFolderName + App.stringToAppendToFoldername;
             }
-            saveFileAs = new File(
-                    topFolderName
-                    + subdirectory
-                    + File.separator
-                    + prefix
-                    + saveAs);
+            LOGGER.error("topFolderName: " + topFolderName);
+            LOGGER.error("subdirectory: " + subdirectory);
+            LOGGER.error("File.separator: " + File.separator);
+            LOGGER.error("prefix: " + prefix);
+            LOGGER.error("saveAs: " + saveAs);
+            saveFileAs = new File(topFolderName + subdirectory + File.separator + prefix + saveAs);
         } catch (IOException e) {
             LOGGER.error("[!] Error creating save file path for URL '" + url + "':", e);
             return false;
@@ -306,39 +299,40 @@ public abstract class AbstractRipper
         return addURLToDownload(url, saveFileAs, referrer, cookies, getFileExtFromMIME);
     }
 
-    protected boolean addURLToDownload(URL url, String prefix, String subdirectory, String referrer, Map<String,String> cookies, String fileName, String extension) {
+    protected boolean addURLToDownload(URL url, String prefix, String subdirectory, String referrer,
+            Map<String, String> cookies, String fileName, String extension) {
         return addURLToDownload(url, prefix, subdirectory, referrer, cookies, fileName, extension, false);
     }
 
-    protected boolean addURLToDownload(URL url, String prefix, String subdirectory, String referrer, Map<String, String> cookies, String fileName) {
+    protected boolean addURLToDownload(URL url, String prefix, String subdirectory, String referrer,
+            Map<String, String> cookies, String fileName) {
         return addURLToDownload(url, prefix, subdirectory, referrer, cookies, fileName, null);
     }
 
     /**
      * Queues file to be downloaded and saved. With options.
-     * @param url
-     *      URL to download.
-     * @param prefix
-     *      Prefix to prepend to the saved filename.
-     * @param subdirectory
-     *      Sub-directory of the working directory to save the images to.
+     * 
+     * @param url          URL to download.
+     * @param prefix       Prefix to prepend to the saved filename.
+     * @param subdirectory Sub-directory of the working directory to save the images
+     *                     to.
      * @return True on success, flase on failure.
      */
     protected boolean addURLToDownload(URL url, String prefix, String subdirectory) {
         return addURLToDownload(url, prefix, subdirectory, null, null, null);
     }
 
-    protected boolean addURLToDownload(URL url, String prefix, String subdirectory, String referrer, Map<String, String> cookies) {
+    protected boolean addURLToDownload(URL url, String prefix, String subdirectory, String referrer,
+            Map<String, String> cookies) {
         return addURLToDownload(url, prefix, subdirectory, referrer, cookies, null);
     }
 
     /**
-     * Queues image to be downloaded and saved.
-     * Uses filename from URL (and 'prefix') to decide filename.
-     * @param url
-     *      URL to download
-     * @param prefix
-     *      Text to append to saved filename.
+     * Queues image to be downloaded and saved. Uses filename from URL (and
+     * 'prefix') to decide filename.
+     * 
+     * @param url    URL to download
+     * @param prefix Text to append to saved filename.
      * @return True on success, flase on failure.
      */
     protected boolean addURLToDownload(URL url, String prefix) {
@@ -352,7 +346,7 @@ public abstract class AbstractRipper
             saveAs = fileName;
         } else {
             saveAs = url.toExternalForm();
-            saveAs = saveAs.substring(saveAs.lastIndexOf('/')+1);
+            saveAs = saveAs.substring(saveAs.lastIndexOf('/') + 1);
         }
         if (extension == null) {
             // Get the extension of the file
@@ -365,16 +359,23 @@ public abstract class AbstractRipper
             }
         }
 
-        if (saveAs.indexOf('?') >= 0) { saveAs = saveAs.substring(0, saveAs.indexOf('?')); }
-        if (saveAs.indexOf('#') >= 0) { saveAs = saveAs.substring(0, saveAs.indexOf('#')); }
-        if (saveAs.indexOf('&') >= 0) { saveAs = saveAs.substring(0, saveAs.indexOf('&')); }
-        if (saveAs.indexOf(':') >= 0) { saveAs = saveAs.substring(0, saveAs.indexOf(':')); }
+        if (saveAs.indexOf('?') >= 0) {
+            saveAs = saveAs.substring(0, saveAs.indexOf('?'));
+        }
+        if (saveAs.indexOf('#') >= 0) {
+            saveAs = saveAs.substring(0, saveAs.indexOf('#'));
+        }
+        if (saveAs.indexOf('&') >= 0) {
+            saveAs = saveAs.substring(0, saveAs.indexOf('&'));
+        }
+        if (saveAs.indexOf(':') >= 0) {
+            saveAs = saveAs.substring(0, saveAs.indexOf(':'));
+        }
         if (extension != null) {
             saveAs = saveAs + "." + extension;
         }
         return saveAs;
     }
-
 
     /**
      * Waits for downloading threads to complete.
@@ -388,8 +389,8 @@ public abstract class AbstractRipper
 
     /**
      * Notifies observers that source is being retrieved.
-     * @param url
-     *      URL being retrieved
+     * 
+     * @param url URL being retrieved
      */
     public void retrievingSource(String url) {
         RipStatusMessage msg = new RipStatusMessage(STATUS.LOADING_RESOURCE, url);
@@ -400,21 +401,24 @@ public abstract class AbstractRipper
 
     /**
      * Notifies observers that a file download has completed.
-     * @param url
-     *      URL that was completed.
-     * @param saveAs
-     *      Where the downloaded file is stored.
+     * 
+     * @param url    URL that was completed.
+     * @param saveAs Where the downloaded file is stored.
      */
     public abstract void downloadCompleted(URL url, File saveAs);
+
     /**
      * Notifies observers that a file could not be downloaded (includes a reason).
+     * 
      * @param url
      * @param reason
      */
     public abstract void downloadErrored(URL url, String reason);
+
     /**
-     * Notify observers that a download could not be completed,
-     * but was not technically an "error".
+     * Notify observers that a download could not be completed, but was not
+     * technically an "error".
+     * 
      * @param url
      * @param file
      */
@@ -464,17 +468,16 @@ public abstract class AbstractRipper
 
     /**
      * Gets URL
-     * @return 
-     *      Returns URL that wants to be downloaded.
+     * 
+     * @return Returns URL that wants to be downloaded.
      */
     public URL getURL() {
         return url;
     }
 
     /**
-     * @return
-     *      Path to the directory in which all files
-     *      ripped via this ripper will be stored.
+     * @return Path to the directory in which all files ripped via this ripper will
+     *         be stored.
      */
     public File getWorkingDir() {
         return workingDir;
@@ -485,14 +488,9 @@ public abstract class AbstractRipper
 
     /**
      * 
-     * @param url 
-     *      The URL you want to get the title of.
-     * @return
-     *      host_URLid
-     *      e.g. (for a reddit post)
-     *      reddit_post_7mg2ur
-     * @throws MalformedURLException 
-     *      If any of those damned URLs gets malformed.
+     * @param url The URL you want to get the title of.
+     * @return host_URLid e.g. (for a reddit post) reddit_post_7mg2ur
+     * @throws MalformedURLException If any of those damned URLs gets malformed.
      */
     public String getAlbumTitle(URL url) throws MalformedURLException {
         return getHost() + "_" + getGID(url);
@@ -500,17 +498,16 @@ public abstract class AbstractRipper
 
     /**
      * Finds, instantiates, and returns a compatible ripper for given URL.
-     * @param url
-     *      URL to rip.
-     * @return
-     *      Instantiated ripper ready to rip given URL.
-     * @throws Exception
-     *      If no compatible rippers can be found.
+     * 
+     * @param url URL to rip.
+     * @return Instantiated ripper ready to rip given URL.
+     * @throws Exception If no compatible rippers can be found.
      */
     public static AbstractRipper getRipper(URL url) throws Exception {
         for (Constructor<?> constructor : getRipperConstructors("com.rarchives.ripme.ripper.rippers")) {
             try {
-                AlbumRipper ripper = (AlbumRipper) constructor.newInstance(url); // by design: can throw ClassCastException
+                AlbumRipper ripper = (AlbumRipper) constructor.newInstance(url); // by design: can throw
+                                                                                 // ClassCastException
                 LOGGER.debug("Found album ripper: " + ripper.getClass().getName());
                 return ripper;
             } catch (Exception e) {
@@ -519,7 +516,8 @@ public abstract class AbstractRipper
         }
         for (Constructor<?> constructor : getRipperConstructors("com.rarchives.ripme.ripper.rippers.video")) {
             try {
-                VideoRipper ripper = (VideoRipper) constructor.newInstance(url); // by design: can throw ClassCastException
+                VideoRipper ripper = (VideoRipper) constructor.newInstance(url); // by design: can throw
+                                                                                 // ClassCastException
                 LOGGER.debug("Found video ripper: " + ripper.getClass().getName());
                 return ripper;
             } catch (Exception e) {
@@ -530,10 +528,8 @@ public abstract class AbstractRipper
     }
 
     /**
-     * @param pkg
-     *      The package name.
-     * @return
-     *      List of constructors for all eligible Rippers.
+     * @param pkg The package name.
+     * @return List of constructors for all eligible Rippers.
      * @throws Exception
      */
     public static List<Constructor<?>> getRipperConstructors(String pkg) throws Exception {
@@ -548,7 +544,8 @@ public abstract class AbstractRipper
 
     /**
      * Sends an update message to the relevant observer(s) on this ripper.
-     * @param status 
+     * 
+     * @param status
      * @param message
      */
     public void sendUpdate(STATUS status, Object message) {
@@ -557,16 +554,16 @@ public abstract class AbstractRipper
         }
         observer.update(this, new RipStatusMessage(status, message));
     }
-    
+
     /**
      * Get the completion percentage.
-     * @return 
-     *      Percentage complete
+     * 
+     * @return Percentage complete
      */
     public abstract int getCompletionPercentage();
+
     /**
-     * @return 
-     *      Text for status
+     * @return Text for status
      */
     public abstract String getStatusText();
 
@@ -588,6 +585,7 @@ public abstract class AbstractRipper
             cleanup();
         }
     }
+
     /**
      * Tries to delete any empty directories
      */
@@ -597,18 +595,17 @@ public abstract class AbstractRipper
             LOGGER.info("Deleting empty directory " + this.workingDir);
             boolean deleteResult = this.workingDir.delete();
             if (!deleteResult) {
-                LOGGER.error("Unable to delete empty directory " +  this.workingDir);
+                LOGGER.error("Unable to delete empty directory " + this.workingDir);
             }
         }
     }
-    
+
     /**
      * Pauses thread for a set amount of time.
-     * @param milliseconds
-     *      Amount of time (in milliseconds) that the thread gets paused for
-     * @return 
-     *      True if paused successfully
-     *      False if failed to pause/got interrupted.
+     * 
+     * @param milliseconds Amount of time (in milliseconds) that the thread gets
+     *                     paused for
+     * @return True if paused successfully False if failed to pause/got interrupted.
      */
     protected boolean sleep(int milliseconds) {
         try {
@@ -624,6 +621,7 @@ public abstract class AbstractRipper
     public void setBytesTotal(int bytes) {
         // Do nothing
     }
+
     public void setBytesCompleted(int bytes) {
         // Do nothing
     }
@@ -633,12 +631,18 @@ public abstract class AbstractRipper
         LOGGER.debug("THIS IS A TEST RIP");
         thisIsATest = true;
     }
+
     protected static boolean isThisATest() {
         return thisIsATest;
     }
 
     // If true ripme uses a byte progress bar
-    protected boolean useByteProgessBar() { return false;}
+    protected boolean useByteProgessBar() {
+        return false;
+    }
+
     // If true ripme will try to resume a broken download for this ripper
-    protected boolean tryResumeDownload() { return false;}
+    protected boolean tryResumeDownload() {
+        return false;
+    }
 }
