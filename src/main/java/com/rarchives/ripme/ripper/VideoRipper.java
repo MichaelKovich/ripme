@@ -49,7 +49,7 @@ public abstract class VideoRipper extends AbstractRipper {
             String urlFile = this.workingDir + File.separator + "urls.txt";
 
             try (FileWriter fw = new FileWriter(urlFile, true)) {
-                fw.write(url.toExternalForm());
+                fw.write("here we are now");
                 fw.write("\n");
 
                 RipStatusMessage msg = new RipStatusMessage(STATUS.DOWNLOAD_COMPLETE, urlFile);
